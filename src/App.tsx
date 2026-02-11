@@ -1,35 +1,43 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Container } from "./components/Container";
+import { Heading } from "./components/Heading";
+import { Logo } from "./components/Logo";
 
-function App() {
-  const [count, setCount] = useState(0)
+import "./styles/theme.css";
+import "./styles/global.css";
+import { Menu } from "./components/Menu";
+import { CountDown } from "./components/CountDown";
+import { Input } from "./components/Input";
+import { Cycles } from "./components/Cycles";
 
+export function App() {
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <Container>
+        <Logo />
+      </Container>
+      <Container>
+        <Heading>Menu</Heading>
+        <Menu></Menu>
+      </Container>
+      <Container>
+        <CountDown />
+      </Container>
+      <Container>
+        <form className="form" action="">
+          <div className="form__row">
+            <Input type="text" id="task" label="task" />
+          </div>
+          <div className="form__row">
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+          </div>
+          <div className="form__row">
+            <Cycles />
+          </div>
+          <div className="form__row">
+            <button>Enviar</button>
+          </div>
+        </form>
+      </Container>
     </>
-  )
+  );
 }
-
-export default App
