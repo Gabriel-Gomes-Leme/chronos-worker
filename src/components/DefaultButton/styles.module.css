@@ -1,0 +1,30 @@
+.button {
+  border: none;
+  background: var(--primary);
+  color: var(--text-over-primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 220px;
+  padding: 0.8rem;
+  border-radius: 0.8rem;
+  margin: 8px 0;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+.button:hover {
+  filter: brightness(80%);
+}
+.button svg {
+  width: 32px;
+  height: 32px;
+}
+
+.green {
+  background: var(--primary);
+  color: var(--text-over-primary);
+}
+.red {
+  background: var(--error);
+  color: var(--text-over-error);
+}

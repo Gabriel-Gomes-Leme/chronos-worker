@@ -1,0 +1,14 @@
+.footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.footer a {
+  text-decoration: none;
+  color: var(--grey-300);
+  transition: all 0.3s ease;
+}
+.footer a:hover {
+  opacity: 0.8;
+}
