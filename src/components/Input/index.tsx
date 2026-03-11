@@ -16,7 +16,6 @@ export function Input({ type, id, label, ...rest }: InputProps) {
         type={type}
         placeholder="Task"
         {...rest}
-        defaultValue="Valor preenchido"
       />
     </>
   );
