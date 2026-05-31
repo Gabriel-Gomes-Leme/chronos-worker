@@ -1,15 +1,16 @@
 import { createContext } from "react";
 import type { TaskStateModel } from "../../models/TaskStateModel";
 import { initialTaskState } from "./initialTaskState";
+import type { TaskActionModels } from "./taskActions";
 
 type TaskContextProps = {
   state: TaskStateModel;
-  setState: React.Dispatch<React.SetStateAction<TaskStateModel>>;
+  dispatch: React.Dispatch<TaskActionModels>;
 };
 
 const initialContextValue = {
   state: initialTaskState,
-  setState: () => {},
+  dispatch: () => {},
 };
 
 // Cria um Contexto React global.

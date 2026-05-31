@@ -7,11 +7,14 @@ import type { TaskModel } from "../../models/TaskModel";
 import { useTaskContext } from "../../contexts/TaskContext/useTaskContext";
 import { getNextCycle } from "../../utils/getNextCycle";
 import { getNextCycleType } from "../../utils/getNextCycleType";
-import { formatSecondsToMinutes } from "../../utils/formatSecondsToMinutes";
+import { TaskActionTypes } from "../../contexts/TaskContext/taskActions";
+import { Tips } from "../Tips";
+import { showMessage } from "../../adapters/showMessage";
 
 export function MainForm() {
-  const { state, setState } = useTaskContext();
+  const { state, dispatch } = useTaskContext();
   const taskNameInput = useRef<HTMLInputElement>(null);
+  const lastTaskName = state.tasks[state.tasks.length - 1]?.name;
 
   // Cycles
   const nextCycle = getNextCycle(state.currentCycle);
@@ -19,30 +22,14 @@ export function MainForm() {
 
   console.log(nextCycle);
 
-  function handleInterruptTask() {
-    setState((prevState) => {
-      return {
-        ...prevState,
-        activeTask: null,
-        secondsRemaining: 0,
-        formattedSecondsRemaining: "00:00",
-        tasks: prevState.tasks.map((task) => {
-          if (prevState.activeTask && task.id === prevState.activeTask.id) {
-            return { ...task, interruptDate: Date.now() };
-          }
-          return task;
-        }),
-      };
-    });
-  }
-
   function handleCreateTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    showMessage.dismiss();
     if (taskNameInput.current === null) return;
     const taskName = taskNameInput.current.value.trim();
 
     if (!taskName) {
-      alert("Please enter a task name");
+      showMessage.warn("Por favor, insira um nome para a tarefa");
       return;
     }
 
@@ -55,19 +42,15 @@ export function MainForm() {
       duration: state.config[nextCycleType],
       type: nextCycleType,
     };
-    const secondsRemaining = newTask.duration * 60;
+    // const secondsRemaining = newTask.duration * 60;
 
-    setState((prevState) => {
-      return {
-        ...prevState,
-        config: { ...prevState.config },
-        activeTask: newTask,
-        currentCycle: nextCycle, //conferir,
-        secondsRemaining,
-        formattedSecondsRemaining: formatSecondsToMinutes(secondsRemaining),
-        tasks: [...prevState.tasks, newTask],
-      };
-    });
+    dispatch({ type: TaskActionTypes.START_TASK, payload: newTask });
+    showMessage.success("Tarefa iniciada!");
+  }
+  function handleInterruptTask() {
+    showMessage.dismiss();
+    showMessage.error("Tarefa interrompida");
+    dispatch({ type: TaskActionTypes.INTERRUPT_TASK });
   }
 
   return (
@@ -79,10 +62,11 @@ export function MainForm() {
           label="task"
           ref={taskNameInput}
           disabled={!!state.activeTask}
+          defaultValue={lastTaskName}
         />
       </div>
       <div className="form__row">
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+        <Tips />
       </div>
       {state.currentCycle > 0 && (
         <div className="form__row">

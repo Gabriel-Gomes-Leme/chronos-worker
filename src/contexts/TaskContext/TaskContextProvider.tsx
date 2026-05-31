@@ -1,67 +1,76 @@
-import { useEffect, useReducer, useState } from "react";
-import type { TaskStateModel } from "../../models/TaskStateModel";
-import { TaskContext } from "./TaskContext";
+import { useEffect, useReducer, useRef } from "react";
 import { initialTaskState } from "./initialTaskState";
+import { TaskContext } from "./TaskContext";
+import { taskReducer } from "./taskReducer";
+import { TimerWorkerManager } from "../../components/workers/TimerWorkerManager";
+import { TaskActionTypes } from "./taskActions";
+import { loadBeep } from "../../utils/loadBeep";
+import type { TaskStateModel } from "../../models/TaskStateModel";
 
 type TaskContextProviderProps = {
   children: React.ReactNode;
 };
-// Ele é o "fornecedor" do contexto.
+
 export function TaskContextProvider({ children }: TaskContextProviderProps) {
-  const [state, setState] = useState<TaskStateModel>(initialTaskState);
-
-  type ActionType = {
-    type: string;
-    payLoad?: number;
-  };
-
-  const [myState, dispatch] = useReducer(
-    (state, action: ActionType) => {
-      console.log(state, action);
-      switch (action.type) {
-        case "INCREMENT": {
-          if (!action.payLoad) return state;
-          return {
-            ...state,
-            secondsRemaining: state.secondsRemaining + action.payLoad,
-          };
-        }
-        case "DECREMENT": {
-          if (!action.payLoad) return state;
-          return {
-            ...state,
-            secondsRemaining: state.secondsRemaining - action.payLoad,
-          };
-        }
-        case "RESET": {
-          return {
-            ...state,
-            secondsRemaining: 0,
-          };
-        }
-      }
-
-      return state;
-    },
-    {
+  const [state, dispatch] = useReducer(taskReducer, initialTaskState, () => {
+    const storageState = localStorage.getItem("state");
+    if (storageState == null) return initialTaskState;
+    const parsedStorageState = JSON.parse(storageState) as TaskStateModel;
+    return {
+      ...parsedStorageState,
+      activeTask: null,
       secondsRemaining: 0,
-    },
-  );
+      formattedSecondsRemaining: "00:00:00",
+    };
+  });
+  const playBeepRef = useRef<ReturnType<typeof loadBeep> | null>(null);
+  const worker = TimerWorkerManager.getInstance();
+  worker.onmessage((event) => {
+    const countDownSeconds = event.data;
 
-  // useEffect(() => {
-  //   console.log(state);
-  // }, [state]);
+    if (countDownSeconds <= 0) {
+      if (playBeepRef.current) {
+        console.log("tocando áudio");
+        playBeepRef.current();
+        playBeepRef.current = null;
+      }
+      dispatch({
+        type: TaskActionTypes.COMPLETE_TASK,
+      });
+      console.log("worker completed");
+      worker.terminate();
+    } else {
+      //só dispara a ação de contagem regressiva se o tempo restante for maior que 0
+      dispatch({
+        type: TaskActionTypes.COUNT_DOWN,
+        payload: { secondsRemaining: countDownSeconds },
+      });
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem("state", JSON.stringify(state));
+    if (!state.activeTask) {
+      console.log("worker terminado por falta de task ativa");
+      worker.terminate();
+    }
+    document.title = `${state.formattedSecondsRemaining} - Chronos Pomodoro`;
+    worker.postMessage(state);
+  }, [state, worker]);
+
+  useEffect(() => {
+    if (state.activeTask && playBeepRef.current === null) {
+      console.log("carregando áudio");
+      playBeepRef.current = loadBeep();
+    } else {
+      console.log("resetando áudio");
+      playBeepRef.current = null;
+    }
+  }, [state.activeTask]);
 
   return (
-    <TaskContext.Provider value={{ state, setState }}>
-      <h2>o estado é {myState.secondsRemaining}</h2>
-      <button onClick={() => dispatch({ type: "INCREMENT", payLoad: 10 })}>
-        incrementa 10
-      </button>
-      <button onClick={() => dispatch({ type: "DECREMENT", payLoad: 20 })}>
-        decrementa 20
-      </button>
-      <button onClick={() => dispatch({ type: "RESET" })}>zerar</button>
+    <TaskContext.Provider value={{ state, dispatch }}>
+      {children}
     </TaskContext.Provider>
   );
 }
