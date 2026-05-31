@@ -46,7 +46,7 @@ export function Menu() {
         <HouseIcon />
       </RouterLink>
       <RouterLink
-        href="#"
+        href="/history"
         title="Histórico"
         aria-label="Histórico"
         className={styles.menuLink}
