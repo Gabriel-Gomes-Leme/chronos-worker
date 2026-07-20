@@ -40,10 +40,15 @@ export function History() {
   useEffect(() => {
     if (!confirmClearHistory) return;
 
-    console.log("apagar histórico");
     setConfirmClearHistory(false);
     dispatch({ type: TaskActionTypes.RESET_STATE });
   }, [confirmClearHistory, dispatch]);
+
+  useEffect(() => {
+    return () => {
+      showMessage.dismiss();
+    };
+  }, []);
 
   function handleSortTasks({ field }: Pick<SortTasksOptions, "field">) {
     const newDirection = sortTasksOptions.direction === "desc" ? "asc" : "desc";
@@ -59,6 +64,7 @@ export function History() {
   }
 
   function handleResetHistory() {
+    showMessage.dismiss();
     showMessage.confirm("Tem certeza?", (confirmation) =>
       setConfirmClearHistory(confirmation),
     );
